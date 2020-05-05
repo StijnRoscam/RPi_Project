@@ -37,6 +37,12 @@ wcRol2 = WcRol(wcRol2X, wcRol2Y, 2)
 winkelKar = WinkelKar(wKarX, wKarY, 3)
 virus = Virus(virusX, virusY, 4)
 
+#Startvenster waarin iedereen ziet wat voor gameobject hij/zij is
+#Enkele seconden nadat iedereen is verbonden start het spel
+#if p1Ready, p2Ready, p3Ready, p4Ready
+#   time.sleep(5)
+#   start spel
+
 
 def GUI():
     venster = tk.Tk()
@@ -102,7 +108,7 @@ def GUI():
 
         resetOnEnd()
 
-        venster.after(100,moveObjects) #Every 100 ms, wcrol move 5 to the right, virus 5 to left
+        venster.after(50,moveObjects) #Every 100 ms, wcrol move 5 to the right, virus 5 to left
 
     moveObjects()
 
@@ -110,7 +116,5 @@ def GUI():
 
     
 job1 = Thread(target=GUI)
-#job2 = Thread(target=moveObjects)
-
 job1.start()
 #job2.start()
