@@ -117,6 +117,21 @@ def GUI():
 
         venster.after(50,moveObjects) #Every 100 ms, wcrol move 5 to the right, virus 5 to left
 
+    def moveObjectsCoord():
+        global wcRol1, wcRol2, winkelKar, virus
+        kader.delete(wcRol1.Image)
+        kader.delete(wcRol2.Image)
+        kader.delete(winkelKar.Image)
+        kader.delete(virus.Image)
+
+        wcRol1.Image = kader.create_image(wcRol1.XCoord, wcRol1.YCoord, anchor=tk.NW, image = wcrolFoto)
+        wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto)
+        winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
+        virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
+
+        venster.after(50, moveObjectsCoord)
+
+
     moveObjects()
 
     venster.mainloop()
@@ -125,7 +140,7 @@ def GUI():
 def Broker():
     def on_connect(client, userdata, flags, rc):
         print("Connected with result code: "+str(rc))
-        client.subscribe("testtopic/apLab6/raspklas")
+        #client.subscribe("testtopic/apLab6/raspklas")
     
     def on_message(client, userdata, msg):
         print("Message : "+str(msg.payload))
@@ -164,7 +179,7 @@ def Broker():
         elif id == "4":
             virusMoveDown = True
 
-    def resetObject(id):
+    def resetObject(id): #Niet nodig als alles in gamecontroller word geregeld
         global wcRol1Reset, wcRol2Reset, winkelKarReset, virusReset
         if id == "1":
             wcRol1Reset = True
@@ -181,7 +196,7 @@ def Broker():
     client.on_connect=on_connect
     client.on_message=on_message
     client.connect("ldlcreations.ddns.net", 1883, 60)
-    client.subscribe("TOPIC")
+    client.subscribe("rpiproject/coord")
     client.loop_start()
     
 job1 = Thread(target=GUI)
