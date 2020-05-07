@@ -2,10 +2,17 @@ import tkinter as tk
 from threading import Thread
 import time
 import os
+import paho.mqtt.client as mqtt
 
 #Set start coördinates
 wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY = 0,100,0,650,750,375,1400,375
 canvasWidth, canvasHeight = 1500, 750
+
+wcRol1MoveUp, wcRol2MoveUp, winkelKarMoveUp, virusMoveUp = False
+wcRol1MoveDown, wcRol2MoveDown, winkelKarMoveDown, virusMoveDown = False
+wcRol1Reset, wcRol2Reset, winkelKarReset, virusReset = False
+
+startGame = False
 
 #Global variables
 class GameObject:
@@ -114,7 +121,72 @@ def GUI():
 
     venster.mainloop()
 
+
+def Broker():
+    def on_connect(client, userdata, flags, rc):
+        print("Connected with result code: "+str(rc))
+        client.subscribe("testtopic/apLab6/raspklas")
+    
+    def on_message(client, userdata, msg):
+        print("Message : "+str(msg.payload))
+        if str(msg.payload)[7:14] == "MOVE=UP":
+            moveUp(str(msg.payload)[5:6])
+
+        elif str(msg.payload)[7:14] == "MOVE=DN":
+            moveDown(str(msg.payload)[5:6])
+
+        elif str(msg.payload)[7:14] == "ACTI=RE":
+            resetObject(str(msg.payload)[5:6])
+
+        elif str(msg.payload)[1:6] == "START":
+            global startGame
+            startGame = True
+
+    def moveUp(id):
+        global wcRol1MoveUp, wcRol2MoveUp, winkelKarMoveUp, virusMoveUp
+        if id == "1":
+            wcRol1MoveUp = True
+        elif id == "2":
+            wcRol2MoveUp = True
+        elif id == "3":
+            winkelKarMoveLeft = True
+        elif id == "4":
+            virusMoveUp = True
+
+    def moveDown(id):
+        global wcRol1MoveDown, wcRol2MoveDown, winkelKarMoveDown, virusMoveDown
+        if id == "1":
+            wcRol1MoveDown = True
+        elif id == "2":
+            wcRol2MoveDown = True
+        elif id == "3":
+            winkelKarMoveRight = True
+        elif id == "4":
+            virusMoveDown = True
+
+    def resetObject(id):
+        global wcRol1Reset, wcRol2Reset, winkelKarReset, virusReset
+        if id == "1":
+            wcRol1Reset = True
+        elif id == "2":
+            wcRol2Reset = True
+        elif id == "3":
+            winkelKarReset = True
+        elif id == "4":
+            virusMoveReset = True
+
+
+
+    client = mqtt.Client("Gui")
+    client.on_connect=on_connect
+    client.on_message=on_message
+    client.connect("ldlcreations.ddns.net", 1883, 60)
+    client.subscribe("TOPIC")
+    client.loop_start()
     
 job1 = Thread(target=GUI)
+job2 = Thread(target=Broker)
 job1.start()
-#job2.start()
+job2.start()
+  
+
