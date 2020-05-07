@@ -117,6 +117,10 @@ def GUI():
 
         venster.after(50,moveObjects) #Every 100 ms, wcrol move 5 to the right, virus 5 to left
 
+
+    def updateCoord():
+        pass
+    
     def moveObjectsCoord():
         global wcRol1, wcRol2, winkelKar, virus
         kader.delete(wcRol1.Image)
