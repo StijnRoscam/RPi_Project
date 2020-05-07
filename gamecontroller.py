@@ -80,9 +80,9 @@ def checkBoundaries():
 
 def autoMove():
     global coordinates
-    coordinates[1] += 5
-    coordinates[3] += 5
-    coordinates[7] -= 5
+    coordinates[0] += 5
+    coordinates[2] += 5
+    coordinates[6] -= 5
 
 def moveUp(id): #Or left for winkelkar
     global coordinates
@@ -109,9 +109,11 @@ def moveDown(id): #Or right for winkelkar
 
 #Loop
 while(True):
-    time.sleep(0.5)
+    time.sleep(0.1)
     autoMove()
     checkCollision()
     checkBoundaries()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
+
+client.disconnect()
 

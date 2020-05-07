@@ -7,11 +7,6 @@ import paho.mqtt.client as mqtt
 #Set start coördinates
 wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY = 0,100,0,650,750,375,1400,375
 canvasWidth, canvasHeight = 1500, 750
-
-wcRol1MoveUp, wcRol2MoveUp, winkelKarMoveUp, virusMoveUp = False,False,False,False
-wcRol1MoveDown, wcRol2MoveDown, winkelKarMoveDown, virusMoveDown = False,False,False,False
-wcRol1Reset, wcRol2Reset, winkelKarReset, virusReset = False,False,False,False
-
 startGame = False
 
 #Global variables
@@ -44,13 +39,6 @@ wcRol2 = WcRol(wcRol2X, wcRol2Y, 2)
 winkelKar = WinkelKar(wKarX, wKarY, 3)
 virus = Virus(virusX, virusY, 4)
 
-#Startvenster waarin iedereen ziet wat voor gameobject hij/zij is
-#Enkele seconden nadat iedereen is verbonden start het spel
-#if p1Ready, p2Ready, p3Ready, p4Ready
-#   time.sleep(5)
-#   start spel
-
-
 def GUI():
     venster = tk.Tk()
 
@@ -70,41 +58,8 @@ def GUI():
     wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto)
     virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
     winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
-    
 
-    #Draw 1 specific image
-    def drawImage(width, height, foto):
-        image = kader.create_image(width, height, anchor=tk.NW, image = foto)
-
-    #Reset in the middle of the screen atm.
-    def resetOnEnd():
-        global wcRol1, wcRol2, virus
-       
-        if wcRol1.XCoord > canvasWidth/2:
-            wcRol1.XCoord = 0
-            kader.delete(wcRol1.Image)
-            wcRol1.Image = kader.create_image(wcRol1.XCoord, wcRol1.YCoord, anchor=tk.NW, image = wcrolFoto)
-            
-        if wcRol2.XCoord > canvasWidth/2:
-            wcRol2.XCoord = 0
-            kader.delete(wcRol2.Image)
-            wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto)
-
-        if virus.XCoord < canvasWidth/2:
-            virus.XCoord = canvasWidth
-            kader.delete(virus.Image)
-            virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
-
-    #Under development
-    def resetWcRol(wcRol, wcRolX, wcRolY, canvas):
-        wcRolX = 0
-        canvas.delete(wcRol)
-       # wcRol = canvas.create_image(wcRolX, wcRolY, anchor=tk.NW, image = wcrolFoto)
-
-    def updateCoords():
-        pass
-
-    def moveObjectsCoord():
+    def draw():
         global wcRol1, wcRol2, winkelKar, virus
         kader.delete(wcRol1.Image)
         kader.delete(wcRol2.Image)
@@ -116,10 +71,9 @@ def GUI():
         winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
         virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
 
-        venster.after(50, moveObjectsCoord)
+        venster.after(10, draw)
 
-
-    moveObjectsCoord()
+    draw()
 
     venster.mainloop()
 
@@ -130,24 +84,25 @@ def Broker():
         #client.subscribe("testtopic/apLab6/raspklas")
     
     def on_message(client, userdata, msg):
-        print("Message : "+str(msg.payload))
-        if str(msg.payload)[7:14] == "ACTI=RE":
-            resetObject(str(msg.payload)[5:6])
-
-        elif str(msg.payload)[1:6] == "START":
+        #print("Message : "+str(msg.payload))
+        if str(msg.payload)[1:6] == "START":
             global startGame
             startGame = True
+        else:
+            updateCoords(str(msg.payload))
 
-    def resetObject(id): #Niet nodig als alles in gamecontroller word geregeld
-        global wcRol1Reset, wcRol2Reset, winkelKarReset, virusReset
-        if id == "1":
-            wcRol1Reset = True
-        elif id == "2":
-            wcRol2Reset = True
-        elif id == "3":
-            winkelKarReset = True
-        elif id == "4":
-            virusMoveReset = True
+    def updateCoords(msg):
+        global wcRol1, wcRol2, winkelKar, virus
+        coordinates = msg.strip("b' ").replace(" ", "").split(',')
+        wcRol1.XCoord=int(coordinates[0])
+        wcRol1.YCoord=int(coordinates[1])
+        wcRol2.XCoord=int(coordinates[2])
+        wcRol2.YCoord=int(coordinates[3])
+        winkelKar.XCoord=int(coordinates[4])
+        winkelKar.YCoord=int(coordinates[5])
+        virus.XCoord=int(coordinates[6])
+        virus.YCoord=int(coordinates[7])
+        print(coordinates)
 
     client = mqtt.Client("Gui")
     client.on_connect=on_connect
