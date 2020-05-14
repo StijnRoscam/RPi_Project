@@ -87,7 +87,6 @@ def baseCollision(obj1X, obj1Y, obj2X, obj2Y):
         return False
 
 def checkBoundaries():
-
     global coordinates
     #Check coordinates in x direction, reset /stop if necessary
     if coordinates[0] >= canvasWidth:
@@ -162,6 +161,8 @@ while(True):
     checkCollision()
     checkBoundaries()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
+    time.sleep(0.1)
+    client.publish("rpiproject/score", "SCORE:"+str(score))
 
 client.disconnect()
 

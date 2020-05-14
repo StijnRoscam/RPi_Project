@@ -23,15 +23,12 @@ class GameObject:
 
 class WcRol(GameObject):
     photoPath = os.path.dirname(os.path.realpath(__file__))+"\wcrol.png"
-    Speed = 5
     
 class WinkelKar(GameObject):
     photoPath = os.path.dirname(os.path.realpath(__file__))+"\winkelkar.png"
-    Score = 0
 
 class Virus(GameObject):
     photoPath = os.path.dirname(os.path.realpath(__file__))+"\\virus.png"
-    Speed = -5
 
 #Instantiating different objects
 wcRol1 = WcRol(wcRol1X, wcRol1Y, 1)
@@ -88,8 +85,17 @@ def Broker():
         if str(msg.payload)[1:6] == "START":
             global startGame
             startGame = True
-        else:
+        if str(msg.topic) == "rpiproject/score":
+            updateScore(str(msg.payload))
+        if str(msg.topic) == "rpiproject/coord":
             updateCoords(str(msg.payload))
+
+        print(msg.payload)
+        print(msg.topic)
+
+    def updateScore(msg):
+        print(msg)
+        pass
 
     def updateCoords(msg):
         global wcRol1, wcRol2, winkelKar, virus
@@ -102,13 +108,14 @@ def Broker():
         winkelKar.YCoord=int(coordinates[5])
         virus.XCoord=int(coordinates[6])
         virus.YCoord=int(coordinates[7])
-        print(coordinates)
+        #print(coordinates)
 
     client = mqtt.Client("Gui")
     client.on_connect=on_connect
     client.on_message=on_message
     client.connect("ldlcreations.ddns.net", 1883, 60)
     client.subscribe("rpiproject/coord")
+    client.subscribe("rpiproject/score")
     client.loop_start()
     
 job1 = Thread(target=GUI)
