@@ -2,7 +2,7 @@ from threading import Thread
 import time
 import paho.mqtt.client as mqtt
 
-coordinates = [0,100,0,650,750,375,1400,375] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
+coordinates = [0,0,0,650,750,375,1400,375] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
 canvasWidth, canvasHeight = 1500, 750
 startGame = False
 clientID = 1
@@ -46,7 +46,15 @@ def initialConnection(client):
 
 
 def checkCollision():
+    #wcRol width:       50px, height 60px
+    #winkelKar width:   50px, height 40px
+    #virus width:       50px, height 53px
+
+    #Collision winkelKar wcRol
+    #if coordinates[1] 
     pass
+
+
 
 def checkBoundaries():
     global coordinates
@@ -58,31 +66,44 @@ def checkBoundaries():
     if coordinates[6] <= 0:
         coordinates[6] = canvasWidth
     #Winkelkar between boundaries of 1/3 and 2/3 of canvaswidth
-    if coordinates[4] <= canvasWidth/3:
-        coordinates[4] = canvasWidth/3
-    if coordinates[4] >= 2*canvasWidth/3:
-        coordinates[4] = 2*canvasWidth/3
+    if coordinates[4] <= 500:
+        coordinates[4] = 500
+    if coordinates[4] >= 1000-40:
+        coordinates[4] = 1000-40
 
     #Check coordinates in y direction, reset / stop if necessary
     if coordinates[1] <= 0:
         coordinates[1] = 0
     if coordinates[3] <= 0:
-        coordinates[1] = 0
+        coordinates[3] = 0
     if coordinates [7] <= 0:
         coordinates[7] = 0
+    if coordinates [5] <= 0:
+        coordinates[5] = 0
+    
 
-    if coordinates[1] >= canvasHeight:
-        coordinates[1] = canvasHeight
-    if coordinates[3] >= canvasHeight:
-        coordinates[1] = canvasHeight
-    if coordinates [7] >= canvasHeight:
-        coordinates[7] = canvasHeight
+    if coordinates[1] >= canvasHeight-60:
+        coordinates[1] = canvasHeight-60
+    if coordinates[3] >= canvasHeight-60:
+        coordinates[3] = canvasHeight-60
+    if coordinates [7] >= canvasHeight-60:
+        coordinates[7] = canvasHeight-60
+    if coordinates [5] >= canvasHeight-60:
+        coordinates[5] = canvasHeight-60
 
 def autoMove():
     global coordinates
     coordinates[0] += 5
     coordinates[2] += 5
     coordinates[6] -= 5
+
+    #test vertical movement
+    coordinates[1] += 5
+    coordinates[3] -=5
+    coordinates[7] +=5
+    coordinates[5] -= 5
+    coordinates[4] +=5
+
 
 def moveUp(id): #Or left for winkelkar
     global coordinates
