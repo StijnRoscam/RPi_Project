@@ -7,6 +7,8 @@ canvasWidth, canvasHeight = 1500, 750
 startGame = False
 clientID = 1
 moveSpeed = 5
+score = 0
+collisionMargin = 60
 
 
 def on_connect(client, userdata, flags, rc):
@@ -46,17 +48,46 @@ def initialConnection(client):
 
 
 def checkCollision():
+    global coordinates
+    global score
     #wcRol width:       50px, height 60px
     #winkelKar width:   50px, height 40px
     #virus width:       50px, height 53px
 
-    #Collision winkelKar wcRol
-    #if coordinates[1] 
-    pass
+    #Collision winkelKar wcRol1
+    if baseCollision(coordinates[0], coordinates[1], coordinates[4], coordinates[5]):
+        coordinates[0] = 0
+        score += 1
+    #Collision winkelKar wcRol2
+    if baseCollision(coordinates[2], coordinates[3], coordinates[4], coordinates[5]):
+        coordinates[2] = 0
+        score += 1
+    #Collision winkelKar virus
+    if baseCollision(coordinates[6], coordinates[7], coordinates[4], coordinates[5]):
+        coordinates[6] = canvasWidth
+        score = 0
 
+    #Collision virus wcRol1
+    if baseCollision(coordinates[0], coordinates[1], coordinates[6], coordinates[7]):
+        coordinates[6] = canvasWidth
+        coordinates[0] = 0
+    #Collision virus wcRol2
+    if baseCollision(coordinates[2], coordinates[3], coordinates[6], coordinates[7]):
+        coordinates[6] = canvasWidth
+        coordinates[2] = 0
+    
 
+def baseCollision(obj1X, obj1Y, obj2X, obj2Y):
+    if (obj1Y >= obj2Y and obj1Y <= obj2Y + collisionMargin) or (obj1Y+collisionMargin >= obj2Y and obj1Y+collisionMargin <= obj2Y + collisionMargin):
+        if (obj1X >= obj2X and obj1X <= obj2X + collisionMargin) or (obj1X+collisionMargin >= obj2X and obj1X+collisionMargin <= obj2X + collisionMargin):
+            return True
+        else: 
+            return False
+    else: 
+        return False
 
 def checkBoundaries():
+
     global coordinates
     #Check coordinates in x direction, reset /stop if necessary
     if coordinates[0] >= canvasWidth:
@@ -80,7 +111,6 @@ def checkBoundaries():
         coordinates[7] = 0
     if coordinates [5] <= 0:
         coordinates[5] = 0
-    
 
     if coordinates[1] >= canvasHeight-60:
         coordinates[1] = canvasHeight-60
@@ -98,11 +128,8 @@ def autoMove():
     coordinates[6] -= 5
 
     #test vertical movement
-    coordinates[1] += 5
-    coordinates[3] -=5
-    coordinates[7] +=5
-    coordinates[5] -= 5
-    coordinates[4] +=5
+    moveDown("1")
+    
 
 
 def moveUp(id): #Or left for winkelkar
