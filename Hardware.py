@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import RPi.GPIO as GPIO
+import paho.mqtt.client as mqtt
 import time
 
 
@@ -73,14 +74,16 @@ def icKnopChange(channel):
 
 
 while i<1:
-   GPIO.setup(Knop1, GPIO.IN)
-   GPIO.setup(Knop2, GPIO.IN)
+    global ID
+    GPIO.setup(Knop1, GPIO.IN)
+    GPIO.setup(Knop2, GPIO.IN)
 
-   GPIO.setup(LedRoodWC, GPIO.OUT)
-   GPIO.setup(LedGeelKar, GPIO.OUT)
-   GPIO.setup(LedGroenVirus, GPIO.OUT)
-
-   if ID == "1":
+    GPIO.setup(LedRoodWC, GPIO.OUT)
+    GPIO.setup(LedGeelKar, GPIO.OUT)
+    GPIO.setup(LedGroenVirus, GPIO.OUT)
+    GPIO.add_event_detect( Knop1, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
+    GPIO.add_event_detect( Knop2, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
+    if ID == "1":
         GPIO.output(LedRoodWC, True)
         GPIO.output(LedGeelKar, False)
         GPIO.output(LedGroenVirus, False)
@@ -92,15 +95,12 @@ while i<1:
         GPIO.output(LedRoodWC, False)
         GPIO.output(LedGeelKar, False)
         GPIO.output(LedGroenVirus, True)
-    else :
+    else:
         GPIO.output(LedRoodWC, False)
         GPIO.output(LedGeelKar, False)
         GPIO.output(LedGroenVirus, False)
-
-   GPIO.add_event_detect( Knop1, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
-   GPIO.add_event_detect( Knop2, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
-   i = i+1
-   print("Setup complete")
+    i = i+1
+    print("Setup complete")
 
 try:
     while True:
