@@ -22,15 +22,25 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 def on_message(client, userdata, msg):
     global VAR
+    global ID
     #print(str(msg.payload))
+    tussen1 = VAR[2:4]
+    tussen2 = VAR[5:6]
+    print(tussen1)
+    print(tussen2)
     VAR = str(msg.payload)
+    if tussen1 == "ID":
+        print(ID)
+        ID = tussen2
+
+
 
 client = mqtt.Client()
 client.on_subscribe = on_subscribe
 client.on_message = on_message
 client.on_publish = on_publish
 client.connect("ldlcreations.ddns.net", 1883, 60)
-client.subscribe("rpiproject/coord")
+client.subscribe("rpiproject/max")
 
 client.loop_start()
 
@@ -66,10 +76,11 @@ def icKnopChange(channel):
         if GPIO.input(channel) == GPIO.LOW:
             print("Knop1 pressed")
             print(VAR)
+            client.publish("rpiproject/max", str("ID=3"), qos=0)
     elif channel == Knop2:
         if GPIO.input(channel) == GPIO.LOW:
             print("Knop2 pressed")
-            client.publish("rpiproject/coord", str("test"), qos=0)
+            client.publish("rpiproject/max", str("DW"), qos=0)
 
 
 
