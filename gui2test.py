@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import tkinter as tk
 from threading import Thread
 import time

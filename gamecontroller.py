@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from threading import Thread
 import time
 import paho.mqtt.client as mqtt
