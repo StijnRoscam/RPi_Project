@@ -9,7 +9,7 @@ Knop2=13
 LedRoodWC=8
 LedGeelKar=25
 LedGroenVirus=24
-ID = "2"
+ID="2"
 GPIO.setmode(GPIO.BCM)
 segments =  (17,27,22,9,11,0,5,10)
 i=0
@@ -61,12 +61,15 @@ num = {' ':(0,0,0,0,0,0,0),
 def icKnopChange(channel):
     global Knop1
     global Knop2
+    global VAR
     if channel == Knop1:
         if GPIO.input(channel) == GPIO.LOW:
             print("Knop1 pressed")
+            print(VAR)
     elif channel == Knop2:
         if GPIO.input(channel) == GPIO.LOW:
             print("Knop2 pressed")
+            client.publish("rpiproject/coord", str("test"), qos=0)
 
 
 
@@ -74,7 +77,6 @@ def icKnopChange(channel):
 
 
 while i<1:
-    global ID
     GPIO.setup(Knop1, GPIO.IN)
     GPIO.setup(Knop2, GPIO.IN)
 
@@ -84,21 +86,21 @@ while i<1:
     GPIO.add_event_detect( Knop1, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
     GPIO.add_event_detect( Knop2, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
     if ID == "1":
-        GPIO.output(LedRoodWC, True)
-        GPIO.output(LedGeelKar, False)
-        GPIO.output(LedGroenVirus, False)
-    elif ID == "2":
         GPIO.output(LedRoodWC, False)
         GPIO.output(LedGeelKar, True)
-        GPIO.output(LedGroenVirus, False)
-    elif ID == "3":
-        GPIO.output(LedRoodWC, False)
+        GPIO.output(LedGroenVirus, True)
+    elif ID == "2":
+        GPIO.output(LedRoodWC, True)
         GPIO.output(LedGeelKar, False)
         GPIO.output(LedGroenVirus, True)
-    else:
-        GPIO.output(LedRoodWC, False)
-        GPIO.output(LedGeelKar, False)
+    elif ID == "3":
+        GPIO.output(LedRoodWC, True)
+        GPIO.output(LedGeelKar, True)
         GPIO.output(LedGroenVirus, False)
+    else:
+        GPIO.output(LedRoodWC, True)
+        GPIO.output(LedGeelKar, True)
+        GPIO.output(LedGroenVirus, True)
     i = i+1
     print("Setup complete")
 
@@ -106,11 +108,11 @@ try:
     while True:
         #n = time.ctime()[11:13]+time.ctime()[14:16]
         s = ID
-        for digit in range(4):
+        for digit in range(1):
             for loop in range(0,7):
                 GPIO.output(segments[loop], num[s[digit]][loop])
-                print(str(segments[loop]))
-                print(str(num[s[digit]]))
+                #print(str(segments[loop]))
+                #print(str(num[s[digit]]))
                 if (int(time.ctime()[18:19])%2 == 0) and (digit == 1):
                     GPIO.output(10, 1)
                 else:
