@@ -9,6 +9,4 @@ bcm -> weerstand + anode -> 7seg pin
 10 -> 220 Ohm Anode DP -> 3
 
 14 -> Digit 1 -> 12
-15 -> Digit 2 -> 9
-18 -> Digit 3 -> 8
-23 -> Digit 4 -> 6
+
