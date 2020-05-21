@@ -1,0 +1,14 @@
+bcm -> weerstand + anode -> 7seg pin
+17 -> 220 Ohm Anode A -> 11
+27 -> 220 Ohm Anode B -> 7
+22 -> 220 Ohm Anode C -> 4
+9  -> 220 Ohm Anode D -> 2
+11 -> 220 Ohm Anode E -> 1
+0  -> 220 Ohm Anode F -> 10
+5  -> 220 Ohm Anode G -> 5
+10 -> 220 Ohm Anode DP -> 3
+
+14 -> Digit 1 -> 12
+15 -> Digit 2 -> 9
+18 -> Digit 3 -> 8
+23 -> Digit 4 -> 6
