@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY = 0,100,0,650,750,375,1400,375
 canvasWidth, canvasHeight = 1500, 750
 startGame = False
+score=0
 
 #Global variables
 class GameObject:
@@ -36,6 +37,7 @@ wcRol1 = WcRol(wcRol1X, wcRol1Y, 1)
 wcRol2 = WcRol(wcRol2X, wcRol2Y, 2)
 winkelKar = WinkelKar(wKarX, wKarY, 3)
 virus = Virus(virusX, virusY, 4)
+scoreText = 0
 
 def GUI():
     venster = tk.Tk()
@@ -52,23 +54,19 @@ def GUI():
     virusFoto = tk.PhotoImage(file = virus.photoPath) #Escape character \\virus.png
 
     #Draw all images
-    wcRol1.Image = kader.create_image(wcRol1.XCoord, wcRol1.YCoord, anchor=tk.NW, image = wcrolFoto)
-    wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto)
-    virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
-    winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
-
     def draw():
-        global wcRol1, wcRol2, winkelKar, virus
+        global wcRol1, wcRol2, winkelKar, virus, scoreText
         kader.delete(wcRol1.Image)
         kader.delete(wcRol2.Image)
         kader.delete(winkelKar.Image)
         kader.delete(virus.Image)
+        kader.delete(scoreText)
 
         wcRol1.Image = kader.create_image(wcRol1.XCoord, wcRol1.YCoord, anchor=tk.NW, image = wcrolFoto)
         wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto)
         winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
         virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
-
+        scoreText = kader.create_text(canvasWidth/2, 10, anchor=tk.NW, text="Score: "+str(score))
         venster.after(10, draw)
 
     draw()
@@ -82,24 +80,20 @@ def Broker():
         #client.subscribe("testtopic/apLab6/raspklas")
     
     def on_message(client, userdata, msg):
-        #print("Message : "+str(msg.payload))
-        if str(msg.payload)[1:6] == "START":
-            global startGame
-            startGame = True
         if str(msg.topic) == "rpiproject/score":
             updateScore(str(msg.payload))
         if str(msg.topic) == "rpiproject/coord":
             updateCoords(str(msg.payload))
 
-        print(msg.payload)
-        print(msg.topic)
+        #print(msg.payload)
+        
 
     def updateScore(msg):
         print(msg)
         pass
 
     def updateCoords(msg):
-        global wcRol1, wcRol2, winkelKar, virus
+        global wcRol1, wcRol2, winkelKar, virus, score
         coordinates = msg.strip("b' ").replace(" ", "").split(',')
         wcRol1.XCoord=int(coordinates[0])
         wcRol1.YCoord=int(coordinates[1])
@@ -109,9 +103,11 @@ def Broker():
         winkelKar.YCoord=int(coordinates[5])
         virus.XCoord=int(coordinates[6])
         virus.YCoord=int(coordinates[7])
-        #print(coordinates)
+        score=int(coordinates[8])
+        #print(coordinates[8])
+        #print(client)
 
-    client = mqtt.Client("Gui")
+    client = mqtt.Client(client_id="Gui")
     client.on_connect=on_connect
     client.on_message=on_message
     client.connect("ldlcreations.ddns.net", 1883, 60)

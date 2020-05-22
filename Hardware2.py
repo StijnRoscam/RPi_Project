@@ -8,12 +8,12 @@ down=13
 LedRoodWC=8
 LedGeelKar=25
 LedGroenVirus=24
-clientName="Stijn"
+clientName="stijn"
 clientID = ""
 GPIO.setmode(GPIO.BCM)
 segments =  (17,27,22,9,11,0,5,10)
 digits = (14,15,18,23)
-VAR = ""
+VAR = "empty"
 
 def on_publish(client, userdata, mid):
     print("mid: "+str(mid))
@@ -23,7 +23,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 def on_message(client, userdata, msg):
     global VAR
-    #print(str(msg.payload))
+    print(str(msg.payload))
     VAR = str(msg.payload)
 
 client = mqtt.Client(clientName)
@@ -32,20 +32,20 @@ client.on_message = on_message
 client.on_publish = on_publish
 client.connect("ldlcreations.ddns.net", 1883, 60)
 
+subscriptionName = "rpiproject/"+str(clientName)
 #subscribe on own topic
-client.subscribe("rpiproject/"+clientName)
-#publish own clientName to initialize topic
-client.publish("rpiproject/initialize", clientName, qos=0)
-
+client.subscribe(subscriptionName)
 client.loop_start()
 
-while VAR !="":
+while VAR == "empty":
     #Every second you dont get a message from gamecontroller, you publish your name again
-    time.sleep(1)
     client.publish("rpiproject/initialize", clientName, qos=0)
+    time.sleep(1)
+
 
 #clientID equals the payload of the message received
 clientID = VAR.strip("b'").replace(" ","")
+print(clientID)
 
 for segment in segments:
     GPIO.setup(segment, GPIO.OUT)
@@ -98,12 +98,11 @@ elif clientID == "4":
 
 #Show 
 for digit in range(1):
-    for loop in range(0,7):
+    for loop in range(0,6):
         GPIO.output(segments[loop], num[clientID[digit]][loop])
         
 
-while True:
-    pass
+input("Wait for input to end game..")
         
 GPIO.cleanup()
 

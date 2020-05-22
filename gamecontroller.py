@@ -3,13 +3,14 @@ from threading import Thread
 import time
 import paho.mqtt.client as mqtt
 
-coordinates = [0,0,0,650,750,375,1400,375] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
+score = 0
+coordinates = [0,0,0,650,750,375,1400,375,score] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
 canvasWidth, canvasHeight = 1500, 750
 startGame = False
 clientID = 1
 moveSpeed = 5
-score = 0
 collisionMargin = 60
+startGame = False
 
 
 def on_connect(client, userdata, flags, rc):
@@ -20,32 +21,38 @@ def on_message(client, userdata, msg):
     print("Message : "+str(msg.payload))
 
     #Wanneer een rpi een bericht stuurt met als msg CNCT, voer initialConnection uit
-    if str(msg.payload)[1:5] == "CNCT":
-        initialConnection(client)
+    if str(msg.topic) == "rpiproject/initialize":
+        initialConnection(str(msg.payload))
 
     #moveUp, met als arg het ID
-    if str(msg.payload)[7:14] == "MOVE=UP":
-        moveUp(str(msg.payload)[5:6])
+    elif str(msg.topic) == "rpiproject/up":
+        moveUp(str(msg.payload).strip("b' ").replace(" ", ""))
 
     #moveDown, met als arg het ID
-    elif str(msg.payload)[7:14] == "MOVE=DN":
-        moveDown(str(msg.payload)[5:6])
+    if str(msg.topic) == "rpiproject/down":
+        moveDown(str(msg.payload).strip("b' ").replace(" ", ""))
     
 
-client = mqtt.Client("GameController")
+client = mqtt.Client(client_id="GameController",userdata="GameControllerUserdata")
 client.on_connect=on_connect
 client.on_message=on_message
 client.connect("ldlcreations.ddns.net", 1883, 60)
-client.subscribe("rpiproject/controller")
+client.subscribe("rpiproject/initialize")
+client.subscribe("rpiproject/up")
+client.subscribe("rpiproject/down")
 client.loop_start()
 
 #Elke controller is gesubscribed op het topic "rpirpiproject/"+ zijn eigen client naam
 #Naar die topic wordt een string gestuurd met daarin het clientID, zo verkrijgt iedereen een verschillend clientID 
-def initialConnection(client):
-    client.publish("rpiproject/"+client, str(clientID))
+def initialConnection(msg):
+    global clientID
+    msgClient = msg.strip("b' ").replace(" ", "")
+    print(msgClient)
+    publishName = "rpiproject/"+str(msgClient)
+    client.publish(publishName, str(clientID))
     clientID += 1
     if clientID == 5:
-        client.publish("rpiproject/coord","START")
+        client.publish("rpiproject/start","START")
 
 
 def checkCollision():
@@ -76,6 +83,8 @@ def checkCollision():
     if baseCollision(coordinates[2], coordinates[3], coordinates[6], coordinates[7]):
         coordinates[6] = canvasWidth
         coordinates[2] = 0
+
+    coordinates[8] = score
     
 
 def baseCollision(obj1X, obj1Y, obj2X, obj2Y):
@@ -123,47 +132,50 @@ def checkBoundaries():
 
 def autoMove():
     global coordinates
-    coordinates[0] += 5
-    coordinates[2] += 5
-    coordinates[6] -= 5
+    coordinates[0] += moveSpeed
+    coordinates[2] += moveSpeed
+    coordinates[6] -= moveSpeed
 
     #test vertical movement
-    moveDown("1")
+    #moveDown("1")
     
 
 
 def moveUp(id): #Or left for winkelkar
     global coordinates
     if id == "1":
-        coordinates[1] -= 5
+        coordinates[1] -= moveSpeed
     elif id == "2":
-        coordinates[3] -= 5
+        coordinates[3] -= moveSpeed
     elif id == "3":
-        coordinates[4] -= 5
+        coordinates[4] -= moveSpeed
     elif id == "4":
-        coordinates[7] -= 5
+        coordinates[7] -= moveSpeed
 
 def moveDown(id): #Or right for winkelkar
     global coordinates
     if id == "1":
-        coordinates[1] += 5
+        coordinates[1] += moveSpeed
     elif id == "2":
-        coordinates[3] += 5
+        coordinates[3] += moveSpeed
     elif id == "3":
-        coordinates[4] += 5
+        coordinates[4] += moveSpeed
     elif id == "4":
-        coordinates[7] += 5
+        coordinates[7] += moveSpeed
 
+#while clientID < 5:
+    #pass
 
 #Loop
-while(True):
+while True:
     time.sleep(0.1)
     autoMove()
     checkCollision()
     checkBoundaries()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
-    time.sleep(0.1)
-    client.publish("rpiproject/score", "SCORE:"+str(score))
+    #print(client._)
+    #time.sleep(0.1)
+    #client.publish("rpiproject/score", "SCORE:"+str(score))
 
 client.disconnect()
 
