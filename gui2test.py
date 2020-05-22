@@ -24,13 +24,14 @@ class GameObject:
         self.ID = ID
 
 class WcRol(GameObject):
-    photoPath = os.path.dirname(os.path.realpath(__file__))+"\wcrol.png"
+    photoPath = os.path.dirname(os.path.realpath(__file__))+"\wcrolid1.png"
+    photoPath2 = os.path.dirname(os.path.realpath(__file__))+"\wcrolid2.png"
     
 class WinkelKar(GameObject):
-    photoPath = os.path.dirname(os.path.realpath(__file__))+"\winkelkar.png"
+    photoPath = os.path.dirname(os.path.realpath(__file__))+"\winkelkarid3.png"
 
 class Virus(GameObject):
-    photoPath = os.path.dirname(os.path.realpath(__file__))+"\\virus.png"
+    photoPath = os.path.dirname(os.path.realpath(__file__))+"\\virusid4.png"
 
 #Instantiating different objects
 wcRol1 = WcRol(wcRol1X, wcRol1Y, 1)
@@ -49,7 +50,8 @@ def GUI():
     kader.pack()
 
     #Instantiate different photo's
-    wcrolFoto = tk.PhotoImage(file = wcRol1.photoPath)
+    wcrolFoto1 = tk.PhotoImage(file = wcRol1.photoPath)
+    wcrolFoto2 = tk.PhotoImage(file = wcRol2.photoPath2)
     winkelkarFoto = tk.PhotoImage(file = winkelKar.photoPath)
     virusFoto = tk.PhotoImage(file = virus.photoPath) #Escape character \\virus.png
 
@@ -62,8 +64,8 @@ def GUI():
         kader.delete(virus.Image)
         kader.delete(scoreText)
 
-        wcRol1.Image = kader.create_image(wcRol1.XCoord, wcRol1.YCoord, anchor=tk.NW, image = wcrolFoto)
-        wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto)
+        wcRol1.Image = kader.create_image(wcRol1.XCoord, wcRol1.YCoord, anchor=tk.NW, image = wcrolFoto1)
+        wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto2)
         winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
         virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
         scoreText = kader.create_text(canvasWidth/2, 10, anchor=tk.NW, text="Score: "+str(score))
