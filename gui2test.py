@@ -17,7 +17,7 @@ class GameObject:
     YCoord = 0
     photoPath = 0
     Image = 0
-    def __init__(self, XCoord, YCoord, ID):
+    def __init__(self, XCoord, YCoord):
         self.XCoord = XCoord
         self.YCoord = YCoord
 
@@ -53,7 +53,7 @@ def GUI():
     wcrolFoto1 = tk.PhotoImage(file = wcRol1.photoPath)
     wcrolFoto2 = tk.PhotoImage(file = wcRol2.photoPath2)
     winkelkarFoto = tk.PhotoImage(file = winkelKar.photoPath)
-    virusFoto = tk.PhotoImage(file = virus.photoPath) #Escape character \\virus.png
+    virusFoto = tk.PhotoImage(file = virus.photoPath)
     backgroundImage = tk.PhotoImage(file = backgroundImageSource)
     background = kader.create_image(0,0,anchor=tk.NW, image=backgroundImage)
 
@@ -71,12 +71,12 @@ def GUI():
         winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
         virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
         scoreText = kader.create_text(canvasWidth*3/4, 10, anchor=tk.NW, text="Score: "+str(score),font="Arial 30 bold")
+
         if not endGame:
             venster.after(10, draw)
-
         else:
             time.sleep(1)
-            GameOver = kader.create_text(canvasWidth/2, canvasHeight/2, anchor=tk.NW, text="Game over, max score reached.", font="Arial 40 bold")
+            GameOver = kader.create_text(200, 150, anchor=tk.NW, text="Game over, max score reached.", font="Arial 40 bold")
             print("Gameover")
 
     draw()
@@ -111,15 +111,13 @@ def Broker():
         virus.XCoord=int(coordinates[6])
         virus.YCoord=int(coordinates[7])
         score=int(coordinates[8])
-        #print(coordinates[8])
-        #print(client)
 
     client = mqtt.Client(client_id="Gui")
     client.on_connect=on_connect
     client.on_message=on_message
     client.connect("ldlcreations.ddns.net", 1883, 60)
     client.subscribe("rpiproject/coord")
-    client.subscribe("rpiproject/score")
+    client.subscribe("rpiproject/gameover")
     client.loop_start()
     
 job1 = Thread(target=GUI)
