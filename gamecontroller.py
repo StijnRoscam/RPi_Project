@@ -11,7 +11,42 @@ clientID = 1
 moveSpeed = 5
 collisionMargin = 200
 startGame = False
+maxScore = 5
 
+class GameObject:
+    X = 0
+    Y = 0
+    def __init__(self, XCoord, YCoord):
+        self.X = XCoord
+        self.Y = YCoord
+
+class WcRol(GameObject):
+    Xspeed = 5
+    Yspeed = 5
+    
+class WinkelKar(GameObject):
+    Xspeed = 5
+    Yspeed = 0
+
+class Virus(GameObject):
+    Xspeed = -5
+    Yspeed = 5
+
+wcRol1 = WcRol(coordinates[0], coordinates[1])
+wcRol2 = WcRol(coordinates[2], coordinates[3])
+winkelKar = WinkelKar(coordinates[4], coordinates[5])
+virus = Virus(coordinates[6], coordinates[7])
+
+def coordUpdate():
+    global coordinates
+    coordinates[0] = wcRol1.X
+    coordinates[1] = wcRol1.Y
+    coordinates[2] = wcRol2.X
+    coordinates[3] = wcRol2.Y
+    coordinates[4] = winkelKar.X
+    coordinates[5] = winkelKar.Y
+    coordinates[6] = virus.X
+    coordinates[7] = virus.Y
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code: "+str(rc))
@@ -135,7 +170,7 @@ def autoMove():
     global coordinates
     coordinates[0] += moveSpeed
     coordinates[2] += moveSpeed
-    coordinates[6] -= moveSpeed
+    coordinates[6] -= moveSpeed*2
 
     #test vertical movement
     #moveDown("1")
@@ -145,35 +180,36 @@ def autoMove():
 def moveUp(id): #Or left for winkelkar
     global coordinates
     if id == "1":
-        coordinates[1] -= moveSpeed
+        coordinates[1] -= moveSpeed*2
     elif id == "2":
-        coordinates[3] -= moveSpeed
+        coordinates[3] -= moveSpeed*2
     elif id == "3":
-        coordinates[4] -= moveSpeed
+        coordinates[4] -= moveSpeed*2
     elif id == "4":
-        coordinates[7] -= moveSpeed
+        coordinates[7] -= moveSpeed*2
 
 def moveDown(id): #Or right for winkelkar
     global coordinates
     if id == "1":
-        coordinates[1] += moveSpeed
+        coordinates[1] += moveSpeed*2
     elif id == "2":
-        coordinates[3] += moveSpeed
+        coordinates[3] += moveSpeed*2
     elif id == "3":
-        coordinates[4] += moveSpeed
+        coordinates[4] += moveSpeed*2
     elif id == "4":
-        coordinates[7] += moveSpeed
+        coordinates[7] += moveSpeed*2
 
-#while clientID < 5:
-    #pass
+while clientID < 3:
+    pass
 
 #Loop
-while True:
+while score < maxScore:
     time.sleep(0.1)
     autoMove()
     checkCollision()
     checkBoundaries()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
 
+client.publish("rpiproject/gameover", "Gameover")
 client.disconnect()
 

@@ -3,12 +3,16 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as mqtt
 import time
 
+clientName = input("Please give your name: \n")
+clientName = clientName.replace(" ","")
+print("Welcome, "+clientName+", enjoy the game.")
+
 up=6
 down=13
 LedRoodWC=8
 LedGeelKar=25
 LedGroenVirus=24
-clientName="stijn"
+#clientName="stijn"
 clientID = ""
 GPIO.setmode(GPIO.BCM)
 segments =  (17,27,22,9,11,0,5,10)
@@ -26,7 +30,7 @@ def on_message(client, userdata, msg):
     print(str(msg.payload))
     VAR = str(msg.payload)
 
-client = mqtt.Client(clientName)
+client = mqtt.Client()
 client.on_subscribe = on_subscribe
 client.on_message = on_message
 client.on_publish = on_publish
