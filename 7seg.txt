@@ -10,5 +10,5 @@ bcm -> weerstand + anode -> 7seg pin
 
 14 -> Digit 1 -> 12
 
-6  -> Knop pullup() up
-13 -> Knop pullup() down
+6  -> Knop pulldown() up
+13 -> Knop pulldown() down
