@@ -34,6 +34,7 @@ wcRol2 = WcRol(coordinates[2], coordinates[3])
 winkelKar = WinkelKar(coordinates[4], coordinates[5])
 virus = Virus(coordinates[6], coordinates[7])
 
+#update coordinates with correct values
 def coordUpdate():
     global coordinates
     coordinates[0] = wcRol1.X
@@ -48,18 +49,17 @@ def coordUpdate():
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code: "+str(rc))
-    #client.subscribe("testtopic/apLab6/raspklas")
 
 def on_message(client, userdata, msg):
-    #Wanneer een rpi een bericht stuurt met als msg CNCT, voer initialConnection uit
+    #When a message is received on rpiproject/initialize, do initialConnection()
     if str(msg.topic) == "rpiproject/initialize":
         initialConnection(str(msg.payload))
 
-    #moveUp, met als arg het ID
+    #moveUp, with arg the given ID
     elif str(msg.topic) == "rpiproject/up":
         moveUp(str(msg.payload).strip("b' ").replace(" ", ""))
 
-    #moveDown, met als arg het ID
+    #moveDown, with arg the given ID
     if str(msg.topic) == "rpiproject/down":
         moveDown(str(msg.payload).strip("b' ").replace(" ", ""))
     
@@ -73,8 +73,8 @@ client.subscribe("rpiproject/up")
 client.subscribe("rpiproject/down")
 client.loop_start()
 
-#Elke controller is gesubscribed op het topic "rpirpiproject/"+ zijn eigen client naam
-#Naar die topic wordt een string gestuurd met daarin het clientID, zo verkrijgt iedereen een verschillend clientID 
+# Every rpi is subscribed on his own topic 'rpiproject/' + his own client name
+# The gamecontroller wil send the clientID to this topic, this way everyone has a different clientID 
 def initialConnection(msg):
     global clientID
     msgClient = msg[2:].strip("'").replace(" ", "")
@@ -82,44 +82,43 @@ def initialConnection(msg):
     publishName = "rpiproject/"+str(msgClient)
     client.publish(publishName, str(clientID))
     clientID += 1
-    if clientID == 5:
-        client.publish("rpiproject/start","START")
-
 
 def checkCollision():
     global wcRol1, wcRol2, winkelKar, virus
     global score
 
     #Collision winkelKar wcRol1
-    if baseCollision(wcRol1.X, wcRol1.Y, winkelKar.X, winkelKar.Y):
+    if baseCollision(wcRol1, winkelKar):
         wcRol1.X = 0
         score += 1
     #Collision winkelKar wcRol2
-    if baseCollision(wcRol2.X, wcRol2.Y, winkelKar.X, winkelKar.Y):
+    if baseCollision(wcRol2, winkelKar):
         wcRol2.X = 0
         score += 1
     #Collision winkelKar virus
-    if baseCollision(virus.X, virus.Y, winkelKar.X, winkelKar.Y):
+    if baseCollision(virus, winkelKar):
         virus.X = canvasWidth
         #score = 0
 
     #Collision virus wcRol1
-    if baseCollision(wcRol1.X, wcRol1.Y, virus.X, virus.Y):
+    if baseCollision(wcRol1, virus):
         virus.X = canvasWidth
         wcRol1.X = 0
     #Collision virus wcRol2
-    if baseCollision(wcRol2.X, wcRol2.Y, virus.X, virus.Y):
+    if baseCollision(wcRol2, virus):
         virus.X = canvasWidth
         wcRol2.X = 0
-    
-def baseCollision(obj1X, obj1Y, obj2X, obj2Y):
-    if (obj1Y >= obj2Y and obj1Y <= obj2Y + collisionMargin) or (obj1Y+collisionMargin >= obj2Y and obj1Y+collisionMargin <= obj2Y + collisionMargin):
-        if (obj1X >= obj2X and obj1X <= obj2X + collisionMargin) or (obj1X+collisionMargin >= obj2X and obj1X+collisionMargin <= obj2X + collisionMargin):
+
+#Based on the x & y coordinates of 2 objects, determines if there is a collision or not    
+def baseCollision(obj1, obj2):
+    if (obj1.Y >= obj2.Y and obj1.Y <= obj2.Y + collisionMargin) or (obj1.Y+collisionMargin >= obj2.Y and obj1.Y+collisionMargin <= obj2.Y + collisionMargin):
+        if (obj1.X >= obj2.X and obj1.X <= obj2.X + collisionMargin) or (obj1.X+collisionMargin >= obj2.X and obj1.X+collisionMargin <= obj2.X + collisionMargin):
             return True
         else: 
             return False
     else: 
         return False
+        
 
 def checkBoundaries():
     global wcRol1, wcRol2, winkelKar, virus
@@ -183,11 +182,11 @@ def moveDown(id): #Or right for winkelkar
     elif id == "4":
         virus.Y += virus.Yspeed
 
-#Alleen als alle 4 de deelnemers een id hebben gekregen zal het spel starten
+# Only if 4 id's have been handed out the game wil start (coordinates will be send to GUI)
 while clientID < 5:
     pass
 
-#Loop
+#Loop as long as score is lower than the maximum score
 while score < maxScore:
     time.sleep(0.1)
     autoMove()
@@ -196,9 +195,5 @@ while score < maxScore:
     coordUpdate()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
 
-coordUpdate()
-client.publish("rpiproject/coord",str(coordinates).strip('[]'))
-
-client.publish("rpiproject/gameover", "Gameover")
 client.disconnect()
 

@@ -3,53 +3,71 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as mqtt
 import time
 
+#Give a name, this is your client-name
+clientName = input("Please give your name: \n")
+clientName = clientName.replace(" ","")
+print("Welcome, "+clientName+", enjoy the game.")
 
-Knop1=6
-Knop2=13
+#Initialize pins
+up=6
+down=13
 LedRoodWC=8
 LedGeelKar=25
 LedGroenVirus=24
-ID="2"
+clientID = ""
 GPIO.setmode(GPIO.BCM)
 segments =  (17,27,22,9,11,0,5,10)
-i=0
-VAR = ""
+digits = (14,15,18,23)
+VAR = "empty"
+
 def on_publish(client, userdata, mid):
-    print("mid: "+str(mid))
+    #print("mid: "+str(mid))
+    pass
 
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed: "+str(mid)+" "+str(granted_qos))
 
 def on_message(client, userdata, msg):
     global VAR
-    global ID
-    #print(str(msg.payload))
-    tussen1 = VAR[2:4]
-    tussen2 = VAR[5:6]
-    print(tussen1)
-    print(tussen2)
+    print(str(msg.payload))
     VAR = str(msg.payload)
-    if tussen1 == "ID":
-        print(ID)
-        ID = tussen2
-
-
 
 client = mqtt.Client()
 client.on_subscribe = on_subscribe
 client.on_message = on_message
 client.on_publish = on_publish
 client.connect("ldlcreations.ddns.net", 1883, 60)
-client.subscribe("rpiproject/max")
 
+subscriptionName = "rpiproject/"+str(clientName)
+#subscribe on own topic
+client.subscribe(subscriptionName)
 client.loop_start()
 
+while VAR == "empty":
+    #Every second you dont get a message from gamecontroller, you publish your name again to request an ID
+    client.publish("rpiproject/initialize", clientName, qos=0)
+    print("Waiting for id ...")
+    time.sleep(1)
+
+
+#clientID equals the payload of the message received
+clientID = VAR.strip("b'").replace(" ","")
+print("Your ID is: "+clientID)
+
+#Define isr for publishing "up" or "down"
+def publishUp(channel):
+    client.publish("rpiproject/up",str(clientID), qos=0)
+    print("Up")
+
+def publishDown(channel):
+    client.publish("rpiproject/down",str(clientID), qos=0)
+    print("Down")
+
+#Setup pins
 for segment in segments:
     GPIO.setup(segment, GPIO.OUT)
     GPIO.output(segment, 0)
     print("segment setup "+ str(segment))
-
-digits = (14,15,18,23)
 
 for digit in digits:
     GPIO.setup(digit, GPIO.OUT)
@@ -68,72 +86,36 @@ num = {' ':(0,0,0,0,0,0,0),
     '8':(1,1,1,1,1,1,1),
     '9':(1,1,1,1,0,1,1)}
 
-def icKnopChange(channel):
-    global Knop1
-    global Knop2
-    global VAR
-    if channel == Knop1:
-        if GPIO.input(channel) == GPIO.LOW:
-            print("Knop1 pressed")
-            print(VAR)
-            client.publish("rpiproject/max", str("ID=3"), qos=0)
-    elif channel == Knop2:
-        if GPIO.input(channel) == GPIO.LOW:
-            print("Knop2 pressed")
-            client.publish("rpiproject/max", str("DW"), qos=0)
+GPIO.setup(up, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(down, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+GPIO.setup(LedRoodWC, GPIO.OUT)
+GPIO.setup(LedGeelKar, GPIO.OUT)
+GPIO.setup(LedGroenVirus, GPIO.OUT)
+GPIO.output(LedGeelKar,False)
+GPIO.output(LedGroenVirus,False)
+GPIO.output(LedRoodWC,False)
 
+GPIO.add_event_detect( up, GPIO.RISING, callback=publishUp, bouncetime=30 )
+GPIO.add_event_detect( down, GPIO.RISING, callback=publishDown, bouncetime=30 )
 
+#Based on reveiced clientID, the correct led will light up
+if clientID == "1" or clientID =="2":
+    GPIO.output(LedRoodWC, True)
+elif clientID == "3":
+    GPIO.output(LedGeelKar, True)
+elif clientID == "4":
+    GPIO.output(LedGroenVirus, True)
 
-
-
-while i<1:
-    GPIO.setup(Knop1, GPIO.IN)
-    GPIO.setup(Knop2, GPIO.IN)
-
-    GPIO.setup(LedRoodWC, GPIO.OUT)
-    GPIO.setup(LedGeelKar, GPIO.OUT)
-    GPIO.setup(LedGroenVirus, GPIO.OUT)
-    GPIO.add_event_detect( Knop1, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
-    GPIO.add_event_detect( Knop2, GPIO.FALLING, callback=icKnopChange, bouncetime=1 )
-    if ID == "1":
-        GPIO.output(LedRoodWC, False)
-        GPIO.output(LedGeelKar, True)
-        GPIO.output(LedGroenVirus, True)
-    elif ID == "2":
-        GPIO.output(LedRoodWC, True)
-        GPIO.output(LedGeelKar, False)
-        GPIO.output(LedGroenVirus, True)
-    elif ID == "3":
-        GPIO.output(LedRoodWC, True)
-        GPIO.output(LedGeelKar, True)
-        GPIO.output(LedGroenVirus, False)
-    else:
-        GPIO.output(LedRoodWC, True)
-        GPIO.output(LedGeelKar, True)
-        GPIO.output(LedGroenVirus, True)
-    i = i+1
-    print("Setup complete")
-
-try:
-    while True:
-        #n = time.ctime()[11:13]+time.ctime()[14:16]
-        s = ID
-        for digit in range(1):
-            for loop in range(0,7):
-                GPIO.output(segments[loop], num[s[digit]][loop])
-                #print(str(segments[loop]))
-                #print(str(num[s[digit]]))
-                if (int(time.ctime()[18:19])%2 == 0) and (digit == 1):
-                    GPIO.output(10, 1)
-                else:
-                    GPIO.output(10, 0)
-            #print("nummer "+str(digits[digit]))
-            GPIO.output(digits[digit], 0)
-            time.sleep(0.001)
-            GPIO.output(digits[digit], 1)
+#Show the clientID on the 7 segment display
+for loop in range(0,7):
+    GPIO.output(segments[loop], num[clientID][loop])
+GPIO.output(digits[0], False)
         
-finally:
-    GPIO.cleanup()
+
+input("Wait for input to end game..")
+        
+GPIO.cleanup()
+client.disconnect()
 
     
