@@ -4,12 +4,12 @@ import time
 import paho.mqtt.client as mqtt
 
 score = 0
-coordinates = [0,0,0,650,750,375,1400,375,score] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
+coordinates = [0,0,0,550,750,375,1300,375,score] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
 canvasWidth, canvasHeight = 1500, 750
 startGame = False
 clientID = 1
 moveSpeed = 5
-collisionMargin = 60
+collisionMargin = 200
 startGame = False
 
 
@@ -73,7 +73,7 @@ def checkCollision():
     #Collision winkelKar virus
     if baseCollision(coordinates[6], coordinates[7], coordinates[4], coordinates[5]):
         coordinates[6] = canvasWidth
-        score = 0
+        #score = 0
 
     #Collision virus wcRol1
     if baseCollision(coordinates[0], coordinates[1], coordinates[6], coordinates[7]):
@@ -84,6 +84,7 @@ def checkCollision():
         coordinates[6] = canvasWidth
         coordinates[2] = 0
 
+    #coordinates[8] represents the score
     coordinates[8] = score
     
 
@@ -108,8 +109,8 @@ def checkBoundaries():
     #Winkelkar between boundaries of 1/3 and 2/3 of canvaswidth
     if coordinates[4] <= 500:
         coordinates[4] = 500
-    if coordinates[4] >= 1000-40:
-        coordinates[4] = 1000-40
+    if coordinates[4] >= 1000-collisionMargin:
+        coordinates[4] = 1000-collisionMargin
 
     #Check coordinates in y direction, reset / stop if necessary
     if coordinates[1] <= 0:
@@ -121,14 +122,14 @@ def checkBoundaries():
     if coordinates [5] <= 0:
         coordinates[5] = 0
 
-    if coordinates[1] >= canvasHeight-60:
-        coordinates[1] = canvasHeight-60
-    if coordinates[3] >= canvasHeight-60:
-        coordinates[3] = canvasHeight-60
-    if coordinates [7] >= canvasHeight-60:
-        coordinates[7] = canvasHeight-60
-    if coordinates [5] >= canvasHeight-60:
-        coordinates[5] = canvasHeight-60
+    if coordinates[1] >= canvasHeight-collisionMargin:
+        coordinates[1] = canvasHeight-collisionMargin
+    if coordinates[3] >= canvasHeight-collisionMargin:
+        coordinates[3] = canvasHeight-collisionMargin
+    if coordinates [7] >= canvasHeight-collisionMargin:
+        coordinates[7] = canvasHeight-collisionMargin
+    if coordinates [5] >= canvasHeight-collisionMargin:
+        coordinates[5] = canvasHeight-collisionMargin
 
 def autoMove():
     global coordinates
@@ -173,9 +174,6 @@ while True:
     checkCollision()
     checkBoundaries()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
-    #print(client._)
-    #time.sleep(0.1)
-    #client.publish("rpiproject/score", "SCORE:"+str(score))
 
 client.disconnect()
 

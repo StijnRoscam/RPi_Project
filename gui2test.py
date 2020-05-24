@@ -6,7 +6,7 @@ import os
 import paho.mqtt.client as mqtt
 
 #Set start coördinates
-wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY = 0,100,0,650,750,375,1400,375
+wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY = 0,100,0,550,750,375,1300,375
 canvasWidth, canvasHeight = 1500, 750
 startGame = False
 score=0
@@ -24,14 +24,14 @@ class GameObject:
         self.ID = ID
 
 class WcRol(GameObject):
-    photoPath = os.path.dirname(os.path.realpath(__file__))+"\wcrolid1.png"
-    photoPath2 = os.path.dirname(os.path.realpath(__file__))+"\wcrolid2.png"
+    photoPath = os.path.dirname(os.path.realpath(__file__))+"\wcrol1.png"
+    photoPath2 = os.path.dirname(os.path.realpath(__file__))+"\wcrol2.png"
     
 class WinkelKar(GameObject):
-    photoPath = os.path.dirname(os.path.realpath(__file__))+"\winkelkarid3.png"
+    photoPath = os.path.dirname(os.path.realpath(__file__))+"\winkelkar3.png"
 
 class Virus(GameObject):
-    photoPath = os.path.dirname(os.path.realpath(__file__))+"\\virusid4.png"
+    photoPath = os.path.dirname(os.path.realpath(__file__))+"\\virus4.png"
 
 #Instantiating different objects
 wcRol1 = WcRol(wcRol1X, wcRol1Y, 1)
@@ -39,6 +39,8 @@ wcRol2 = WcRol(wcRol2X, wcRol2Y, 2)
 winkelKar = WinkelKar(wKarX, wKarY, 3)
 virus = Virus(virusX, virusY, 4)
 scoreText = 0
+
+backgroundImageSource = file=os.path.dirname(os.path.realpath(__file__))+"\\background.png"
 
 def GUI():
     venster = tk.Tk()
@@ -54,6 +56,8 @@ def GUI():
     wcrolFoto2 = tk.PhotoImage(file = wcRol2.photoPath2)
     winkelkarFoto = tk.PhotoImage(file = winkelKar.photoPath)
     virusFoto = tk.PhotoImage(file = virus.photoPath) #Escape character \\virus.png
+    backgroundImage = tk.PhotoImage(file = backgroundImageSource)
+    background = kader.create_image(0,0,anchor=tk.NW, image=backgroundImage)
 
     #Draw all images
     def draw():
@@ -68,7 +72,7 @@ def GUI():
         wcRol2.Image = kader.create_image(wcRol2.XCoord, wcRol2.YCoord, anchor=tk.NW, image = wcrolFoto2)
         winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
         virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
-        scoreText = kader.create_text(canvasWidth/2, 10, anchor=tk.NW, text="Score: "+str(score))
+        scoreText = kader.create_text(canvasWidth*3/4, 10, anchor=tk.NW, text="Score: "+str(score),font="Arial 30 bold")
         venster.after(10, draw)
 
     draw()

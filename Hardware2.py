@@ -45,7 +45,7 @@ while VAR == "empty":
 
 #clientID equals the payload of the message received
 clientID = VAR.strip("b'").replace(" ","")
-print(clientID)
+print("Your is is: "+clientID)
 
 for segment in segments:
     GPIO.setup(segment, GPIO.OUT)
@@ -97,9 +97,12 @@ elif clientID == "4":
     GPIO.output(LedGroenVirus, True)
 
 #Show 
-for digit in range(1):
-    for loop in range(0,6):
-        GPIO.output(segments[loop], num[clientID[digit]][loop])
+#for digit in range(1):
+    #for loop in range(0,7):
+    #    GPIO.output(segments[loop], num[clientID][loop])
+GPIO.output(22, True)
+GPIO.output(27, True)
+GPIO.output(14, True)
         
 
 input("Wait for input to end game..")
