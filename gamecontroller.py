@@ -6,20 +6,51 @@ import paho.mqtt.client as mqtt
 score = 0
 coordinates = [0,0,0,550,750,375,1300,375,score] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
 canvasWidth, canvasHeight = 1500, 750
-startGame = False
 clientID = 1
-moveSpeed = 5
-collisionMargin = 200
-startGame = False
+collisionMargin = 150
+maxScore = 5
 
+class GameObject:
+    X = 0
+    Y = 0
+    def __init__(self, XCoord, YCoord):
+        self.X = XCoord
+        self.Y = YCoord
+
+class WcRol(GameObject):
+    Xspeed = 10
+    Yspeed = 10
+    
+class WinkelKar(GameObject):
+    Xspeed = 10
+    Yspeed = 0
+
+class Virus(GameObject):
+    Xspeed = -15
+    Yspeed = 10
+
+wcRol1 = WcRol(coordinates[0], coordinates[1])
+wcRol2 = WcRol(coordinates[2], coordinates[3])
+winkelKar = WinkelKar(coordinates[4], coordinates[5])
+virus = Virus(coordinates[6], coordinates[7])
+
+def coordUpdate():
+    global coordinates
+    coordinates[0] = wcRol1.X
+    coordinates[1] = wcRol1.Y
+    coordinates[2] = wcRol2.X
+    coordinates[3] = wcRol2.Y
+    coordinates[4] = winkelKar.X
+    coordinates[5] = winkelKar.Y
+    coordinates[6] = virus.X
+    coordinates[7] = virus.Y
+    coordinates[8] = score
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code: "+str(rc))
     #client.subscribe("testtopic/apLab6/raspklas")
 
 def on_message(client, userdata, msg):
-    print("Message : "+str(msg.payload))
-
     #Wanneer een rpi een bericht stuurt met als msg CNCT, voer initialConnection uit
     if str(msg.topic) == "rpiproject/initialize":
         initialConnection(str(msg.payload))
@@ -47,7 +78,7 @@ client.loop_start()
 def initialConnection(msg):
     global clientID
     msgClient = msg.strip("b' ").replace(" ", "")
-    print(msgClient)
+    print(msgClient+" is joining the game")
     publishName = "rpiproject/"+str(msgClient)
     client.publish(publishName, str(clientID))
     clientID += 1
@@ -56,38 +87,31 @@ def initialConnection(msg):
 
 
 def checkCollision():
-    global coordinates
+    global wcRol1, wcRol2, winkelKar, virus
     global score
-    #wcRol width:       50px, height 60px
-    #winkelKar width:   50px, height 40px
-    #virus width:       50px, height 53px
 
     #Collision winkelKar wcRol1
-    if baseCollision(coordinates[0], coordinates[1], coordinates[4], coordinates[5]):
-        coordinates[0] = 0
+    if baseCollision(wcRol1.X, wcRol1.Y, winkelKar.X, winkelKar.Y):
+        wcRol1.X = 0
         score += 1
     #Collision winkelKar wcRol2
-    if baseCollision(coordinates[2], coordinates[3], coordinates[4], coordinates[5]):
-        coordinates[2] = 0
+    if baseCollision(wcRol2.X, wcRol2.Y, winkelKar.X, winkelKar.Y):
+        wcRol2.X = 0
         score += 1
     #Collision winkelKar virus
-    if baseCollision(coordinates[6], coordinates[7], coordinates[4], coordinates[5]):
-        coordinates[6] = canvasWidth
+    if baseCollision(virus.X, virus.Y, winkelKar.X, winkelKar.Y):
+        virus.X = canvasWidth
         #score = 0
 
     #Collision virus wcRol1
-    if baseCollision(coordinates[0], coordinates[1], coordinates[6], coordinates[7]):
-        coordinates[6] = canvasWidth
-        coordinates[0] = 0
+    if baseCollision(wcRol1.X, wcRol1.Y, virus.X, virus.Y):
+        virus.X = canvasWidth
+        wcRol1.X = 0
     #Collision virus wcRol2
-    if baseCollision(coordinates[2], coordinates[3], coordinates[6], coordinates[7]):
-        coordinates[6] = canvasWidth
-        coordinates[2] = 0
-
-    #coordinates[8] represents the score
-    coordinates[8] = score
+    if baseCollision(wcRol2.X, wcRol2.Y, virus.X, virus.Y):
+        virus.X = canvasWidth
+        wcRol2.X = 0
     
-
 def baseCollision(obj1X, obj1Y, obj2X, obj2Y):
     if (obj1Y >= obj2Y and obj1Y <= obj2Y + collisionMargin) or (obj1Y+collisionMargin >= obj2Y and obj1Y+collisionMargin <= obj2Y + collisionMargin):
         if (obj1X >= obj2X and obj1X <= obj2X + collisionMargin) or (obj1X+collisionMargin >= obj2X and obj1X+collisionMargin <= obj2X + collisionMargin):
@@ -98,82 +122,83 @@ def baseCollision(obj1X, obj1Y, obj2X, obj2Y):
         return False
 
 def checkBoundaries():
-    global coordinates
+    global wcRol1, wcRol2, winkelKar, virus
     #Check coordinates in x direction, reset /stop if necessary
-    if coordinates[0] >= canvasWidth:
-        coordinates[0] = 0
-    if coordinates[2] >= canvasWidth:
-        coordinates[2] = 0
-    if coordinates[6] <= 0:
-        coordinates[6] = canvasWidth
+    if wcRol1.X >= canvasWidth:
+        wcRol1.X = 0
+    if wcRol2.X >= canvasWidth:
+        wcRol2.X = 0
+    if virus.X <= 0:
+        virus.X = canvasWidth
     #Winkelkar between boundaries of 1/3 and 2/3 of canvaswidth
-    if coordinates[4] <= 500:
-        coordinates[4] = 500
-    if coordinates[4] >= 1000-collisionMargin:
-        coordinates[4] = 1000-collisionMargin
+    if winkelKar.X <= 500:
+        winkelKar.X = 500
+    if winkelKar.X >= 1000-collisionMargin:
+        winkelKar.X = 1000-collisionMargin
 
     #Check coordinates in y direction, reset / stop if necessary
-    if coordinates[1] <= 0:
-        coordinates[1] = 0
-    if coordinates[3] <= 0:
-        coordinates[3] = 0
-    if coordinates [7] <= 0:
-        coordinates[7] = 0
-    if coordinates [5] <= 0:
-        coordinates[5] = 0
+    if wcRol1.Y <= 0:
+        wcRol1.Y = 0
+    if wcRol2.Y <= 0:
+        wcRol2.Y = 0
+    if virus.Y <= 0:
+        virus.Y = 0
+    if winkelKar.Y <= 0:
+        winkelKar.Y = 0
 
-    if coordinates[1] >= canvasHeight-collisionMargin:
-        coordinates[1] = canvasHeight-collisionMargin
-    if coordinates[3] >= canvasHeight-collisionMargin:
-        coordinates[3] = canvasHeight-collisionMargin
-    if coordinates [7] >= canvasHeight-collisionMargin:
-        coordinates[7] = canvasHeight-collisionMargin
-    if coordinates [5] >= canvasHeight-collisionMargin:
-        coordinates[5] = canvasHeight-collisionMargin
+    if wcRol1.Y >= canvasHeight-collisionMargin:
+        wcRol1.Y = canvasHeight-collisionMargin
+    if wcRol2.Y >= canvasHeight-collisionMargin:
+        wcRol2.Y = canvasHeight-collisionMargin
+    if virus.Y >= canvasHeight-collisionMargin:
+        virus.Y = canvasHeight-collisionMargin
+    if winkelKar.Y >= canvasHeight-collisionMargin:
+        winkelKar.Y = canvasHeight-collisionMargin
 
 def autoMove():
     global coordinates
-    coordinates[0] += moveSpeed
-    coordinates[2] += moveSpeed
-    coordinates[6] -= moveSpeed
-
-    #test vertical movement
-    #moveDown("1")
+    wcRol1.X += wcRol1.Xspeed
+    wcRol2.X += wcRol1.Xspeed
+    virus.X += virus.Xspeed
     
-
-
 def moveUp(id): #Or left for winkelkar
     global coordinates
     if id == "1":
-        coordinates[1] -= moveSpeed
+        wcRol1.Y -= wcRol1.Yspeed
     elif id == "2":
-        coordinates[3] -= moveSpeed
+        wcRol2.Y -= wcRol2.Yspeed
     elif id == "3":
-        coordinates[4] -= moveSpeed
+        winkelKar.X -= winkelKar.Xspeed
     elif id == "4":
-        coordinates[7] -= moveSpeed
+        virus.Y -= virus.Yspeed
 
 def moveDown(id): #Or right for winkelkar
     global coordinates
     if id == "1":
-        coordinates[1] += moveSpeed
+        wcRol1.Y += wcRol1.Yspeed
     elif id == "2":
-        coordinates[3] += moveSpeed
+        wcRol2.Y += wcRol2.Yspeed
     elif id == "3":
-        coordinates[4] += moveSpeed
+        winkelKar.X += winkelKar.Xspeed
     elif id == "4":
-        coordinates[7] += moveSpeed
+        virus.Y += virus.Yspeed
 
-#while clientID < 5:
-    #pass
+#Alleen als alle 4 de deelnemers een id hebben gekregen zal het spel starten
+while clientID < 5:
+    pass
 
 #Loop
-while True:
+while score < maxScore:
     time.sleep(0.1)
     autoMove()
     checkCollision()
     checkBoundaries()
+    coordUpdate()
     client.publish("rpiproject/coord",str(coordinates).strip('[]'))
 
+coordUpdate()
+client.publish("rpiproject/coord",str(coordinates).strip('[]'))
+
+client.publish("rpiproject/gameover", "Gameover")
 client.disconnect()
 

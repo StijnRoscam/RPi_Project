@@ -8,20 +8,18 @@ import paho.mqtt.client as mqtt
 #Set start coördinates
 wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY = 0,100,0,550,750,375,1300,375
 canvasWidth, canvasHeight = 1500, 750
-startGame = False
+endGame = False
 score=0
 
 #Global variables
 class GameObject:
     XCoord = 0
     YCoord = 0
-    ID = 0
     photoPath = 0
     Image = 0
-    def __init__(self, XCoord, YCoord, ID):
+    def __init__(self, XCoord, YCoord):
         self.XCoord = XCoord
         self.YCoord = YCoord
-        self.ID = ID
 
 class WcRol(GameObject):
     photoPath = os.path.dirname(os.path.realpath(__file__))+"\wcrol1.png"
@@ -34,10 +32,10 @@ class Virus(GameObject):
     photoPath = os.path.dirname(os.path.realpath(__file__))+"\\virus4.png"
 
 #Instantiating different objects
-wcRol1 = WcRol(wcRol1X, wcRol1Y, 1)
-wcRol2 = WcRol(wcRol2X, wcRol2Y, 2)
-winkelKar = WinkelKar(wKarX, wKarY, 3)
-virus = Virus(virusX, virusY, 4)
+wcRol1 = WcRol(wcRol1X, wcRol1Y)
+wcRol2 = WcRol(wcRol2X, wcRol2Y)
+winkelKar = WinkelKar(wKarX, wKarY)
+virus = Virus(virusX, virusY)
 scoreText = 0
 
 backgroundImageSource = file=os.path.dirname(os.path.realpath(__file__))+"\\background.png"
@@ -55,7 +53,7 @@ def GUI():
     wcrolFoto1 = tk.PhotoImage(file = wcRol1.photoPath)
     wcrolFoto2 = tk.PhotoImage(file = wcRol2.photoPath2)
     winkelkarFoto = tk.PhotoImage(file = winkelKar.photoPath)
-    virusFoto = tk.PhotoImage(file = virus.photoPath) #Escape character \\virus.png
+    virusFoto = tk.PhotoImage(file = virus.photoPath)
     backgroundImage = tk.PhotoImage(file = backgroundImageSource)
     background = kader.create_image(0,0,anchor=tk.NW, image=backgroundImage)
 
@@ -73,7 +71,13 @@ def GUI():
         winkelKar.Image = kader.create_image(winkelKar.XCoord, winkelKar.YCoord, anchor=tk.NW, image = winkelkarFoto)
         virus.Image = kader.create_image(virus.XCoord, virus.YCoord, anchor=tk.NW, image = virusFoto)
         scoreText = kader.create_text(canvasWidth*3/4, 10, anchor=tk.NW, text="Score: "+str(score),font="Arial 30 bold")
-        venster.after(10, draw)
+
+        if not endGame:
+            venster.after(10, draw)
+        else:
+            time.sleep(1)
+            GameOver = kader.create_text(200, 150, anchor=tk.NW, text="Game over, max score reached.", font="Arial 40 bold")
+            print("Gameover")
 
     draw()
 
@@ -86,17 +90,14 @@ def Broker():
         #client.subscribe("testtopic/apLab6/raspklas")
     
     def on_message(client, userdata, msg):
-        if str(msg.topic) == "rpiproject/score":
-            updateScore(str(msg.payload))
         if str(msg.topic) == "rpiproject/coord":
             updateCoords(str(msg.payload))
 
-        #print(msg.payload)
-        
-
-    def updateScore(msg):
-        print(msg)
-        pass
+        if str(msg.topic) == "rpiproject/gameover":
+            global endGame
+            endGame = True
+            print("Gameover received")
+            client.disconnect()
 
     def updateCoords(msg):
         global wcRol1, wcRol2, winkelKar, virus, score
@@ -110,15 +111,13 @@ def Broker():
         virus.XCoord=int(coordinates[6])
         virus.YCoord=int(coordinates[7])
         score=int(coordinates[8])
-        #print(coordinates[8])
-        #print(client)
 
     client = mqtt.Client(client_id="Gui")
     client.on_connect=on_connect
     client.on_message=on_message
     client.connect("ldlcreations.ddns.net", 1883, 60)
     client.subscribe("rpiproject/coord")
-    client.subscribe("rpiproject/score")
+    client.subscribe("rpiproject/gameover")
     client.loop_start()
     
 job1 = Thread(target=GUI)

@@ -3,12 +3,16 @@ import RPi.GPIO as GPIO
 import paho.mqtt.client as mqtt
 import time
 
+clientName = input("Please give your name: \n")
+clientName = clientName.replace(" ","")
+print("Welcome, "+clientName+", enjoy the game.")
+
 up=6
 down=13
 LedRoodWC=8
 LedGeelKar=25
 LedGroenVirus=24
-clientName="stijn"
+#clientName="stijn"
 clientID = ""
 GPIO.setmode(GPIO.BCM)
 segments =  (17,27,22,9,11,0,5,10)
@@ -16,7 +20,8 @@ digits = (14,15,18,23)
 VAR = "empty"
 
 def on_publish(client, userdata, mid):
-    print("mid: "+str(mid))
+    #print("mid: "+str(mid))
+    pass
 
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed: "+str(mid)+" "+str(granted_qos))
@@ -26,7 +31,7 @@ def on_message(client, userdata, msg):
     print(str(msg.payload))
     VAR = str(msg.payload)
 
-client = mqtt.Client(clientName)
+client = mqtt.Client()
 client.on_subscribe = on_subscribe
 client.on_message = on_message
 client.on_publish = on_publish
@@ -40,12 +45,13 @@ client.loop_start()
 while VAR == "empty":
     #Every second you dont get a message from gamecontroller, you publish your name again
     client.publish("rpiproject/initialize", clientName, qos=0)
+    print("Waiting for id ...")
     time.sleep(1)
 
 
 #clientID equals the payload of the message received
 clientID = VAR.strip("b'").replace(" ","")
-print("Your is is: "+clientID)
+print("Your ID is: "+clientID)
 
 for segment in segments:
     GPIO.setup(segment, GPIO.OUT)
@@ -71,9 +77,11 @@ num = {' ':(0,0,0,0,0,0,0),
 
 def publishUp(channel):
     client.publish("rpiproject/up",str(clientID), qos=0)
+    print("Up")
 
 def publishDown(channel):
     client.publish("rpiproject/down",str(clientID), qos=0)
+    print("Down")
 
 #Setup pins
 GPIO.setup(up, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
