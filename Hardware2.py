@@ -20,7 +20,8 @@ digits = (14,15,18,23)
 VAR = "empty"
 
 def on_publish(client, userdata, mid):
-    print("mid: "+str(mid))
+    #print("mid: "+str(mid))
+    pass
 
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed: "+str(mid)+" "+str(granted_qos))
@@ -44,12 +45,13 @@ client.loop_start()
 while VAR == "empty":
     #Every second you dont get a message from gamecontroller, you publish your name again
     client.publish("rpiproject/initialize", clientName, qos=0)
+    print("Waiting for id ...")
     time.sleep(1)
 
 
 #clientID equals the payload of the message received
 clientID = VAR.strip("b'").replace(" ","")
-print("Your is is: "+clientID)
+print("Your ID is: "+clientID)
 
 for segment in segments:
     GPIO.setup(segment, GPIO.OUT)
@@ -75,9 +77,11 @@ num = {' ':(0,0,0,0,0,0,0),
 
 def publishUp(channel):
     client.publish("rpiproject/up",str(clientID), qos=0)
+    print("Up")
 
 def publishDown(channel):
     client.publish("rpiproject/down",str(clientID), qos=0)
+    print("Down")
 
 #Setup pins
 GPIO.setup(up, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)

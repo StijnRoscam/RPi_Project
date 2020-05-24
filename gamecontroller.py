@@ -51,8 +51,6 @@ def on_connect(client, userdata, flags, rc):
     #client.subscribe("testtopic/apLab6/raspklas")
 
 def on_message(client, userdata, msg):
-    print("Message : "+str(msg.payload))
-
     #Wanneer een rpi een bericht stuurt met als msg CNCT, voer initialConnection uit
     if str(msg.topic) == "rpiproject/initialize":
         initialConnection(str(msg.payload))
@@ -80,7 +78,7 @@ client.loop_start()
 def initialConnection(msg):
     global clientID
     msgClient = msg.strip("b' ").replace(" ", "")
-    print(msgClient)
+    print(msgClient+" is joining the game")
     publishName = "rpiproject/"+str(msgClient)
     client.publish(publishName, str(clientID))
     clientID += 1
