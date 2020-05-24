@@ -94,8 +94,8 @@ GPIO.output(LedGeelKar,False)
 GPIO.output(LedGroenVirus,False)
 GPIO.output(LedRoodWC,False)
 
-GPIO.add_event_detect( up, GPIO.RISING, callback=publishUp, bouncetime=20 )
-GPIO.add_event_detect( down, GPIO.RISING, callback=publishDown, bouncetime=20 )
+GPIO.add_event_detect( up, GPIO.RISING, callback=publishUp, bouncetime=30 )
+GPIO.add_event_detect( down, GPIO.RISING, callback=publishDown, bouncetime=30 )
 
 if clientID == "1" or clientID =="2":
     GPIO.output(LedRoodWC, True)
@@ -105,12 +105,9 @@ elif clientID == "4":
     GPIO.output(LedGroenVirus, True)
 
 #Show 
-#for digit in range(1):
-    #for loop in range(0,7):
-    #    GPIO.output(segments[loop], num[clientID][loop])
-GPIO.output(22, True)
-GPIO.output(27, True)
-GPIO.output(14, True)
+for loop in range(0,7):
+    GPIO.output(segments[loop], num[clientID][loop])
+GPIO.output(digits[0], False)
         
 
 input("Wait for input to end game..")

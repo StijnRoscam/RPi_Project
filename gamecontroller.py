@@ -7,8 +7,8 @@ score = 0
 coordinates = [0,0,0,550,750,375,1300,375,score] #wcRol1X, wcRol1Y, wcRol2X, wcRol2Y, wKarX, wKarY, virusX, virusY
 canvasWidth, canvasHeight = 1500, 750
 clientID = 1
-collisionMargin = 150
-maxScore = 5
+collisionMargin = 120
+maxScore = 15
 
 class GameObject:
     X = 0
@@ -18,7 +18,7 @@ class GameObject:
         self.Y = YCoord
 
 class WcRol(GameObject):
-    Xspeed = 10
+    Xspeed = 5
     Yspeed = 10
     
 class WinkelKar(GameObject):
@@ -26,7 +26,7 @@ class WinkelKar(GameObject):
     Yspeed = 0
 
 class Virus(GameObject):
-    Xspeed = -15
+    Xspeed = -10
     Yspeed = 10
 
 wcRol1 = WcRol(coordinates[0], coordinates[1])
@@ -77,7 +77,7 @@ client.loop_start()
 #Naar die topic wordt een string gestuurd met daarin het clientID, zo verkrijgt iedereen een verschillend clientID 
 def initialConnection(msg):
     global clientID
-    msgClient = msg.strip("b' ").replace(" ", "")
+    msgClient = msg[2:].strip("'").replace(" ", "")
     print(msgClient+" is joining the game")
     publishName = "rpiproject/"+str(msgClient)
     client.publish(publishName, str(clientID))

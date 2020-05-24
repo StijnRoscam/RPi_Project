@@ -112,7 +112,7 @@ def Broker():
         virus.YCoord=int(coordinates[7])
         score=int(coordinates[8])
 
-    client = mqtt.Client(client_id="Gui")
+    client = mqtt.Client()
     client.on_connect=on_connect
     client.on_message=on_message
     client.connect("ldlcreations.ddns.net", 1883, 60)
